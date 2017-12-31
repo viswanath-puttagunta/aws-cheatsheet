@@ -5,6 +5,22 @@ import json
 import boto3
 from botocore.exceptions import ClientError
 
+'''
+Commands that worked
+http ${GATEWAY}/cities/seattle
+http -v ${GATEWAY}/objects/mykey X-Api-Key:${APIKEY}
+echo '{"name":"Viswanath"}' | http PUT ${GATEWAY}/files/vkey X-API-Key:${APIKEY}
+
+http PUT ${GATEWAY}/files/doc2_shortened.pdf  Content-Type:application/octet-stream X-API-Key:${APIKEY} < ${DATAFOLDER}/${DATAFILE}
+
+echo '{"fname":"kavi", "lname":"Viswanath"}' | http PUT ${GATEWAY}/dynamo/vkey X-API-Key:${APIKEY}
+
+echo '{"fname":"beku", "data": {"lname":"Vish","mname":"vell"}}' | http PUT ${GATEWAY}/dynamo/vkey X-API-Key:${APIKEY}
+
+http ${GATEWAY}/dynamo/kavi X-API-Key:${APIKEY}
+
+'''
+
 app = Chalice(app_name='khelloworld')
 app.debug = True
 
