@@ -1,0 +1,45 @@
+
+curl --user ${USERNAME}:${PASSWORD} -XPUT ${ELASTICURL}'/m1sa?pretty' -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "eventlog": {
+      "properties": {
+        "doc_id": {
+          "type": "text"
+        },
+        "activity": {
+          "type": "text"     
+        },
+        "start": {
+          "type": "date",
+          "format": "yyyyMMdd.HHmmss.SSSZ"
+
+        }
+      }
+    }
+  }
+}
+'
+curl --user ${USERNAME}:${PASSWORD} -XPUT ${ELASTICURL}'/m1sa/_mapping/eventlog?pretty' -H 'Content-Type: application/json' -d'
+{
+  "properties": {
+    "end": {
+      "type": "date",
+      "format": "yyyyMMdd.HHmmss.SSSZ"    
+    }    
+  }
+}
+'
+
+#Delete Index
+curl --user ${USERNAME}:${PASSWORD} -XDELETE ${ELASTICURL}'/m1sa?pretty'
+
+curl --user ${USERNAME}:${PASSWORD} -XPUT ${ELASTICURL}'/m1sa/eventlog/1?pretty' -H 'Content-Type: application/json' -d'
+{
+  "doc_id": "123",
+  "activity": "S3Upload",
+  "start": "20180107.104201.000Z"
+}
+'
+
+
