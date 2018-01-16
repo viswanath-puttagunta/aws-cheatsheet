@@ -32,9 +32,11 @@ CITIES_TO_STATE = {
 S3 = boto3.client('s3', region_name='us-east-2')
 BUCKET = 'vbucket-test1234'
 BUCKET2 = 'vbucket-file1234'
+SQS_QUEUE_URL = 'sqsurlgoeshere'
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('vdynamodb')
+sqs = boto3.client('sqs')
 
 @app.route('/')
 def index():
@@ -84,6 +86,26 @@ def myfile(key):
     request = app.current_request
     if request.method == 'PUT':
         S3.put_object(Bucket=BUCKET2, Key=key,Body=request.raw_body)
+    else:
+        pass
+    return {}
+
+@app.route('/mdoc/{key}', methods=['GET','PUT'], api_key_required=True,content_types=['application/octet-stream'])
+def mymdoc(key):
+    request = app.current_request
+    if request.method == 'PUT':
+        S3.put_object(Bucket=BUCKET2, Key=key,Body=request.raw_body)
+        with table.batch_writer() as batch:
+            batch.put_item(Item= {'fname':key, 'bucket':BUCKET2})
+        response = sqs.send_message(
+                    QueueUrl=SQS_QUEUE_URL,
+                    DelaySeconds=10,
+                    MessageAttributes={
+                        'docid': { 'DataType': 'String', 'StringValue':key},
+                        'bucket': {'DataType': 'String', 'StringValue':BUCKET2}
+                    },
+                    MessageBody=('Hello')
+                   )
     else:
         pass
     return {}
