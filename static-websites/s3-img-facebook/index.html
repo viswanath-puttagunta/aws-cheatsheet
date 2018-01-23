@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AWS SDK for JavaScript - Sample Application</title>
+    <meta charset="utf-8">
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.185.0.min.js"></script>
+</head>
+
+<body>
+    <input id='cContent' type="text">
+    <button id="download-button" style="display:none">Download from S3</button>
+    <div id="results"></div>
+    <div id="fb-root"></div>
+    <div id="asisimage"></div>
+    <script type="text/javascript">
+        var appId = '586821868329249';
+        var roleArn = 'arn:aws:iam::656615097260:role/dummy-bucket-9895467-read-role';
+        var bucketName = 'dummy-bucket-9895467';
+        AWS.config.region = 'us-east-2';
+
+        var fileKey = ''
+        var s3Response = {}
+        
+        function encode(data){
+            var str = data.reduce(function(a,b){ return a+String.fromCharCode(b) },'');
+            return btoa(str).replace(/.{76}(?=.)/g,'$&\n');
+        }
+
+        var bucket = new AWS.S3({
+            params: {
+                Bucket: bucketName
+            }
+        });
+
+        var button = document.getElementById('download-button');
+        var results = document.getElementById('results');
+
+        button.addEventListener('click', function () {
+            fileKey = document.getElementById('cContent').value;
+            results.innerHTML = '';
+            var params = {
+                Bucket: bucketName,
+                Key: fileKey
+            };
+
+            bucket.getObject(params, function (err, data) {
+                if (err) {
+                    results.innerHTML = 'ERROR: ' + err;
+                } else {
+                    var img = document.createElement('img');
+                    img.width = 595;
+                    img.height = 842;
+                    var base64Data = encode(data.Body);
+                    img.src = 'data:image/jpeg;base64,' + base64Data;
+                    document.body.appendChild(img);
+                    s3Response = data;
+                }
+            });
+        }, false);
+
+        /*!
+         * Login to your application using Facebook.
+         * Uses the Facebook SDK for JavaScript available here:
+         * https://developers.facebook.com/docs/javascript/quickstart/
+         */
+
+        window.fbAsyncInit = function () {
+            FB.init({
+                appId: appId
+            });
+
+            FB.login(function (response) {
+                bucket.config.credentials = new AWS.WebIdentityCredentials({
+                    ProviderId: 'graph.facebook.com',
+                    RoleArn: roleArn,
+                    WebIdentityToken: response.authResponse.accessToken
+                });
+                button.style.display = 'block';
+            })
+        };
+
+         // Load the Facebook SDK asynchronously
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {
+                return;
+            }
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "https://connect.facebook.net/en_US/all.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
+</body>
+</html>
